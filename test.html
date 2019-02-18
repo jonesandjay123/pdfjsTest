@@ -14,7 +14,6 @@
 <div id="pdf-container">
 
 </div>
-
 <canvas id="the-canvas" style="border:1px  solid black"></canvas>
 
 <script src="build/pdf.js"></script>
@@ -23,6 +22,14 @@
 <script id="script">
 
 	$('input[type=file]').change(function () {
+
+    if($('input[type=file]').val() === '' || $('input[type=file]').val() === null){
+      console.log("===========檔案選項是空的=========");
+      return;
+    }
+
+    console.log("===========讀取檔案成功=========");
+
 		console.log($('input[type=file]').val());
 	});
 
@@ -34,35 +41,25 @@
   var url = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf';
   url = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
 
-  //
   // The workerSrc property shall be specified.
-  //
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'build/pdf.worker.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'build/pdf.worker.js';
 
-  //
   // Asynchronous download PDF
-  //
   var loadingTask = pdfjsLib.getDocument(url);
   loadingTask.promise.then(function(pdf) {
-    //
+
     // Fetch the first page
-    //
     pdf.getPage(1).then(function(page) {
       var scale = 1.5;
       var viewport = page.getViewport({ scale: scale, });
 
-      //
       // Prepare canvas using PDF page dimensions
-      //
       var canvas = document.getElementById('the-canvas');
       var context = canvas.getContext('2d');
       canvas.height = viewport.height;
       canvas.width = viewport.width;
 
-      //
       // Render PDF page into canvas context
-      //
       var renderContext = {
         canvasContext: context,
         viewport: viewport,
@@ -70,67 +67,69 @@
       page.render(renderContext);
     });
   });
-  
-  <!-- pdfjsLib.getDocument('https://cdn.rawgit.com/mozilla/pdf.js/master/web/compressed.tracemonkey-pldi-09.pdf').then(function(pdf) { -->
-  <!-- pdfjsLib.getDocument('https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf').then(function(pdf) { -->
-  <!-- for (var pageNum = 1; pageNum < pdf.numPages; ++pageNum) { -->
-    <!-- pdf.getPage(pageNum).then(function(page) { -->
-      <!-- // you can now use *page* here -->
 
-      <!-- var scale = 1.5; -->
-      <!-- var viewport = page.getViewport(1); -->
+//   pdfjsLib.getDocument('https://cdn.rawgit.com/mozilla/pdf.js/master/web/compressed.tracemonkey-pldi-09.pdf').then(function(pdf) {
+//   pdfjsLib.getDocument('https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/examples/learning/helloworld.pdf').then(function(pdf) {
+//   for (var pageNum = 1; pageNum < pdf.numPages; ++pageNum) {
+//     pdf.getPage(pageNum).then(function(page) {
+//       // you can now use *page* here
+//
+//       var scale = 1.5;
+//       var viewport = page.getViewport(1);
+//
+//       var canvas = document.createElement('canvas');
+//       var context = canvas.getContext('2d');
+//       canvas.height = viewport.height;
+//       canvas.width = viewport.width;
+//
+//       var renderContext = {
+//         canvasContext: context,
+//         viewport: viewport
+//       };
+//       page.render(renderContext);
+//
+//       document.getElementById('pdf-container').appendChild(canvas);
+//     });
+//   }
+// })
 
-      <!-- var canvas = document.createElement('canvas'); -->
-      <!-- var context = canvas.getContext('2d'); -->
-      <!-- canvas.height = viewport.height; -->
-      <!-- canvas.width = viewport.width; -->
 
-      <!-- var renderContext = { -->
-        <!-- canvasContext: context, -->
-        <!-- viewport: viewport -->
-      <!-- }; -->
-      <!-- page.render(renderContext); -->
+function gettext(pdfUrl){
+  var pdf = pdfjsLib.getDocument(pdfUrl);
+  return pdf.then(function(pdf) { // get all pages text
+       <!-- var maxPages = pdf.pdfInfo.numPages; -->
+  	 var maxPages = 2;
+       var countPromises = []; // collecting all page promises
+       for (var j = 1; j <= maxPages; j++) {
+          var page = pdf.getPage(j);
 
-      <!-- document.getElementById('pdf-container').appendChild(canvas); -->
-    <!-- }); -->
-  <!-- } -->
-<!-- }) -->
-  
-  
-  function gettext(pdfUrl){
-var pdf = pdfjsLib.getDocument(pdfUrl);
-return pdf.then(function(pdf) { // get all pages text
-     <!-- var maxPages = pdf.pdfInfo.numPages; -->
-	 var maxPages = 2;
-     var countPromises = []; // collecting all page promises
-     for (var j = 1; j <= maxPages; j++) {
-        var page = pdf.getPage(j);
+          var txt = "";
+          countPromises.push(page.then(function(page) { // add page promise
+              var textContent = page.getTextContent();
+              return textContent.then(function(text){ // return content promise
+                  return text.items.map(function (s) { return s.str; }).join(''); // value page text
 
-        var txt = "";
-        countPromises.push(page.then(function(page) { // add page promise
-            var textContent = page.getTextContent();
-            return textContent.then(function(text){ // return content promise
-                return text.items.map(function (s) { return s.str; }).join(''); // value page text 
+              });
+          }));
+       }
+       // Wait for all pages and join text
+       return Promise.all(countPromises).then(function (texts) {
 
-            });
-        }));
-     }
-     // Wait for all pages and join text
-     return Promise.all(countPromises).then(function (texts) {
-       
-       return texts.join('');
-     });
-});
+         return texts.join('');
+       });
+  });
 }
 // waiting on gettext to finish completion, or error
 gettext("https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf").then(function (text) {
-  <!-- alert('parse ' + text); -->
+
+console.log("===========讀取檔案成功=========");
+
   console.log('內容: ' + text);
 }, function (reason) {
   console.error(reason);
 });
-  
-  
+
+
 </script>
 
 <hr>
