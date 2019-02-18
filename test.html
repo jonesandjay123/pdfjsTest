@@ -2,24 +2,91 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>'Hello, world!' example</title>
+  <title>PDF analysis Test</title>
 </head>
 <body>
 
 
-<label for="avatar">選擇檔案:</label>
+<label for="avatar">choose file:</label>
 
 <input type="file" id="avatar" name="avatar" accept="application/pdf">
 
-<div id="pdf-container">
+<button onclick="createDownloadlink()">Create file</button><a download="info.txt" id="downloadlink" style="display: none">Download</a>
 
-</div>
+
+<div id="pdf-container"></div>
+
 <canvas id="the-canvas" style="border:1px  solid black"></canvas>
 
 <script src="build/pdf.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
 
 <script id="script">
+
+
+var contentText = "empty";
+
+$(function() {
+
+    console.log( "載入成功!" );
+
+});
+
+//===createDownloadlink=========
+function createDownloadlink(){
+
+  a(contentText, b);
+
+}
+
+function a(contentText, callback){
+
+  console.log("contentText的內容: "+contentText);
+
+  callback(contentText);
+
+  var link = document.getElementById('downloadlink');
+  // link.href = makeTextFile(textbox.value);
+  link.href = makeTextFile(contentText);
+  console.log("contentText的內容3: "+contentText);
+
+  link.style.display = 'block';
+
+}
+
+function b(contentText){
+
+  gettext("https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf").then(function (text) {
+
+    console.log('內容: ' + text);
+    contentText = text;
+    console.log("contentText的內容2: "+contentText);
+
+
+  }, function (reason) {
+    console.error(reason);
+  });
+
+}
+
+
+//====makeTextFile========================
+var textFile = null,
+makeTextFile = function (text) {
+  var data = new Blob([text], {type: 'text/plain'});
+
+  // If we are replacing a previously generated file we need to
+  // manually revoke the object URL to avoid memory leaks.
+  if (textFile !== null) {
+    window.URL.revokeObjectURL(textFile);
+  }
+
+  textFile = window.URL.createObjectURL(data);
+
+  return textFile;
+};
+
+
 
 	$('input[type=file]').change(function () {
 
@@ -119,15 +186,18 @@ function gettext(pdfUrl){
        });
   });
 }
+
 // waiting on gettext to finish completion, or error
-gettext("https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf").then(function (text) {
-
-console.log("===========讀取檔案成功=========");
-
-  console.log('內容: ' + text);
-}, function (reason) {
-  console.error(reason);
-});
+// gettext("https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf").then(function (text) {
+//
+// console.log("===========讀取檔案成功=========");
+//
+//   //console.log('內容: ' + text);
+//   contentText = text;
+//
+// }, function (reason) {
+//   console.error(reason);
+// });
 
 
 </script>
